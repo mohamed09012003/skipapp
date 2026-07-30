@@ -21,6 +21,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val btnListen = findViewById<Button>(R.id.btn_listen)
+        val btnSettings = findViewById<Button>(R.id.btn_settings)
         val tvRecognized = findViewById<TextView>(R.id.tv_recognized)
         val statusText = findViewById<TextView>(R.id.subtitle)
 
@@ -35,6 +36,10 @@ class MainActivity : AppCompatActivity() {
             "Accessibility service is active."
         } else {
             "Accessibility permission is required for gesture execution."
+        }
+
+        btnSettings.setOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
 
         btnListen.setOnClickListener {
