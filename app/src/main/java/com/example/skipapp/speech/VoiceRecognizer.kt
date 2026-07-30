@@ -29,15 +29,31 @@ class VoiceRecognizer(private val context: Context) {
         _results = Channel(Channel.BUFFERED)
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context).apply {
             setRecognitionListener(object : RecognitionListener {
-                override fun onReadyForSpeech(params: Bundle?) {}
+                override fun onReadyForSpeech(params: Bundle?) {
+                    Log.d("VoiceRecognizer", "Ready for speech")
+                }
                 override fun onRmsChanged(rmsdB: Float) {}
                 override fun onBufferReceived(buffer: ByteArray?) {}
-                override fun onPartialResults(partialResults: Bundle?) {}
+                override fun onPartialResults(partialResults: Bundle?) {
+                    val matches = partialResults?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+                    val text = matches?.firstOrNull()
+                    if (!text.isNullOrBlank()) {
+                        Log.d("VoiceRecognizer", "Partial: $text")
+                    }
+                }
                 override fun onEvent(eventType: Int, params: Bundle?) {}
-                override fun onBeginningOfSpeech() {}
-                override fun onEndOfSpeech() {}
+                override fun onBeginningOfSpeech() {
+                    Log.d("VoiceRecognizer", "Beginning of speech")
+                }
+                override fun onEndOfSpeech() {
+                    Log.d("VoiceRecognizer", "End of speech")
+                }
 
                 override fun onError(error: Int) {
+                    Log.w("VoiceRecognizer", "Recognition error: $error")
+                    scope.launch {
+                        _results.send("error:$error")
+                    }
                     val intent = listeningIntent()
                     startListening(intent)
                 }

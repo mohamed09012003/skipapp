@@ -23,6 +23,7 @@ class MainActivity : AppCompatActivity() {
             val text = intent?.getStringExtra(VoiceListeningForegroundService.EXTRA_LAST_COMMAND).orEmpty()
             if (text.isNotBlank()) {
                 findViewById<TextView>(R.id.tv_recognized).text = text
+                findViewById<TextView>(R.id.subtitle).text = "Last heard: $text"
             }
         }
     }
@@ -49,7 +50,11 @@ class MainActivity : AppCompatActivity() {
             "Accessibility permission is required for gesture execution."
         }
 
-        registerReceiver(statusReceiver, IntentFilter(VoiceListeningForegroundService.ACTION_STATUS_UPDATE))
+        try {
+            registerReceiver(statusReceiver, IntentFilter(VoiceListeningForegroundService.ACTION_STATUS_UPDATE))
+        } catch (_: Exception) {
+            // Ignore receiver registration issues during startup
+        }
 
         btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
@@ -80,7 +85,11 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        unregisterReceiver(statusReceiver)
+        try {
+            unregisterReceiver(statusReceiver)
+        } catch (_: Exception) {
+            // Ignore receiver teardown issues during startup
+        }
     }
 
     private fun startListeningService() {

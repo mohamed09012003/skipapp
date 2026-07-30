@@ -62,6 +62,7 @@ class VoiceListeningForegroundService : Service() {
 
     private fun startListening() {
         if (isListeningState.value) return
+        sendStatus("Listening started")
         recognizer.start()
         isListeningState.value = true
         gestureController = GestureController(VoiceAccessibilityService.instance)

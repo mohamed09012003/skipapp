@@ -50,7 +50,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
-        android:text=""
+        android:text="Waiting for speech"
         android:textAppearance="@style/TextAppearance.Material3.BodyLarge"
         app:layout_constraintTop_toBottomOf="@id/btn_listen"
         app:layout_constraintStart_toStartOf="parent"
