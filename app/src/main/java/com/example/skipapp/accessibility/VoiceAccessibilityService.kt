@@ -11,6 +11,7 @@ class VoiceAccessibilityService : AccessibilityService() {
 
     override fun onCreate() {
         super.onCreate()
+        instance = this
         Log.d(tag, "Accessibility service created")
     }
 
@@ -31,5 +32,15 @@ class VoiceAccessibilityService : AccessibilityService() {
     override fun onUnbind(intent: Intent?): Boolean {
         Log.d(tag, "Accessibility service unbound")
         return super.onUnbind(intent)
+    }
+
+    override fun onDestroy() {
+        instance = null
+        super.onDestroy()
+    }
+
+    companion object {
+        @Volatile
+        var instance: VoiceAccessibilityService? = null
     }
 }

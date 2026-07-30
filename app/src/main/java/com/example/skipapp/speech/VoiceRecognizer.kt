@@ -8,6 +8,7 @@ import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -15,21 +16,22 @@ import kotlinx.coroutines.launch
 
 class VoiceRecognizer(private val context: Context) {
     private var speechRecognizer: SpeechRecognizer? = null
-    private val _results = Channel<String>(Channel.BUFFERED)
+    private var _results = Channel<String>(Channel.BUFFERED)
     val results: Flow<String> get() = _results.receiveAsFlow()
-    private val scope = CoroutineScope(Dispatchers.Main)
+    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var isStarted = false
 
     fun start() {
+        if (isStarted) return
         if (SpeechRecognizer.isRecognitionAvailable(context).not()) return
 
+        _results = Channel(Channel.BUFFERED)
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context).apply {
             setRecognitionListener(object : RecognitionListener {
                 override fun onReadyForSpeech(params: Bundle?) {}
                 override fun onRmsChanged(rmsdB: Float) {}
                 override fun onBufferReceived(buffer: ByteArray?) {}
-                override fun onPartialResults(partialResults: Bundle?) {
-                }
-
+                override fun onPartialResults(partialResults: Bundle?) {}
                 override fun onEvent(eventType: Int, params: Bundle?) {}
                 override fun onBeginningOfSpeech() {}
                 override fun onEndOfSpeech() {}
@@ -49,6 +51,7 @@ class VoiceRecognizer(private val context: Context) {
             })
         }
 
+        isStarted = true
         val intent = listeningIntent()
         startListening(intent)
     }
@@ -67,10 +70,11 @@ class VoiceRecognizer(private val context: Context) {
     }
 
     fun stop() {
+        if (!isStarted) return
         speechRecognizer?.stopListening()
         speechRecognizer?.cancel()
         speechRecognizer?.destroy()
         speechRecognizer = null
-        _results.close()
+        isStarted = false
     }
 }

@@ -1,7 +1,6 @@
 package com.example.skipapp.ui
 
 import android.Manifest
-import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -12,12 +11,9 @@ import android.widget.TextView
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.lifecycleScope
 import com.example.skipapp.R
 import com.example.skipapp.accessibility.VoiceAccessibilityService
-import com.example.skipapp.services.VoiceListeningService
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
+import com.example.skipapp.services.VoiceListeningForegroundService
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,23 +24,10 @@ class MainActivity : AppCompatActivity() {
         val tvRecognized = findViewById<TextView>(R.id.tv_recognized)
         val statusText = findViewById<TextView>(R.id.subtitle)
 
-        val listeningService = VoiceListeningService(applicationContext)
-
         val requestPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
             if (granted) {
-                // start listening after permission granted
-                listeningService.start()
+                startListeningService()
                 btnListen.text = "Stop Listening"
-                lifecycleScope.launch {
-                    listeningService.isListening.collectLatest { isListening ->
-                        // no-op for now
-                    }
-                }
-                lifecycleScope.launch {
-                    // collect recognition results and display
-                    // VoiceListeningService forwards results to gesture controller, but we also show them here
-                    // Use the VoiceRecognizer flow indirectly by creating a short collector on the service
-                }
             }
         }
 
@@ -68,19 +51,27 @@ class MainActivity : AppCompatActivity() {
             }
 
             if (btnListen.text.contains("Start")) {
-                listeningService.start()
+                startListeningService()
                 btnListen.text = "Stop Listening"
-
-                lifecycleScope.launch {
-                    listeningService.results.collectLatest { text ->
-                        tvRecognized.text = text
-                    }
-                }
             } else {
-                listeningService.stop()
+                stopListeningService()
                 btnListen.text = "Start Listening"
             }
         }
+    }
+
+    private fun startListeningService() {
+        val serviceIntent = Intent(this, VoiceListeningForegroundService::class.java).apply {
+            putExtra(VoiceListeningForegroundService.EXTRA_START, true)
+        }
+        ContextCompat.startForegroundService(this, serviceIntent)
+    }
+
+    private fun stopListeningService() {
+        val serviceIntent = Intent(this, VoiceListeningForegroundService::class.java).apply {
+            putExtra(VoiceListeningForegroundService.EXTRA_START, false)
+        }
+        ContextCompat.startForegroundService(this, serviceIntent)
     }
 
     private fun isAccessibilityEnabled(context: Context): Boolean {
