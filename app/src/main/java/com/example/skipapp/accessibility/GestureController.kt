@@ -19,12 +19,17 @@ class GestureController(private val service: AccessibilityService?) {
     fun doubleTap() = performGesture(createTapGesture(0.5f, 0.5f, 150), createTapGesture(0.5f, 0.5f, 150))
 
     private fun performGesture(vararg gestures: GestureDescription) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N || service == null) {
-            Log.w(tag, "Gesture skipped: service unavailable or SDK too old")
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
+            Log.w(tag, "Gesture skipped: SDK too old")
+            return
+        }
+        val activeService = service ?: VoiceAccessibilityService.instance
+        if (activeService == null) {
+            Log.w(tag, "Gesture skipped: accessibility service unavailable")
             return
         }
         try {
-            val dispatch = service.dispatchGesture(gestures.first(), null, null)
+            val dispatch = activeService.dispatchGesture(gestures.first(), null, null)
             if (!dispatch) {
                 Log.w(tag, "Gesture dispatch returned false")
             }

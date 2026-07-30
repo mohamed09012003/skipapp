@@ -1,8 +1,10 @@
 package com.example.skipapp.ui
 
 import android.Manifest
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
@@ -16,6 +18,15 @@ import com.example.skipapp.accessibility.VoiceAccessibilityService
 import com.example.skipapp.services.VoiceListeningForegroundService
 
 class MainActivity : AppCompatActivity() {
+    private val statusReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val text = intent?.getStringExtra(VoiceListeningForegroundService.EXTRA_LAST_COMMAND).orEmpty()
+            if (text.isNotBlank()) {
+                findViewById<TextView>(R.id.tv_recognized).text = text
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -37,6 +48,8 @@ class MainActivity : AppCompatActivity() {
         } else {
             "Accessibility permission is required for gesture execution."
         }
+
+        registerReceiver(statusReceiver, IntentFilter(VoiceListeningForegroundService.ACTION_STATUS_UPDATE))
 
         btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
@@ -63,6 +76,11 @@ class MainActivity : AppCompatActivity() {
                 btnListen.text = "Start Listening"
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(statusReceiver)
     }
 
     private fun startListeningService() {

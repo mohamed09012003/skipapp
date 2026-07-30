@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
@@ -41,7 +42,6 @@ class VoiceListeningForegroundService : Service() {
         recognizer = VoiceRecognizer(this)
         parser = VoiceCommandParser()
         commandRegistry = CommandRegistry()
-        gestureController = GestureController(VoiceAccessibilityService.instance)
         createNotificationChannel()
     }
 
@@ -64,8 +64,10 @@ class VoiceListeningForegroundService : Service() {
         if (isListeningState.value) return
         recognizer.start()
         isListeningState.value = true
+        gestureController = GestureController(VoiceAccessibilityService.instance)
         scope.launch {
             recognizer.results.collect { text ->
+                Log.d(tag, "Received command: $text")
                 handleCommand(text)
             }
         }
@@ -80,6 +82,7 @@ class VoiceListeningForegroundService : Service() {
     }
 
     private fun handleCommand(rawCommand: String) {
+        sendStatus(rawCommand)
         when (parser.parse(rawCommand)) {
             com.example.skipapp.commands.Command.Skip -> gestureController.swipeUp()
             com.example.skipapp.commands.Command.Back -> gestureController.swipeDown()
@@ -89,6 +92,13 @@ class VoiceListeningForegroundService : Service() {
             com.example.skipapp.commands.Command.Unmute -> toggleMute(false)
             else -> Unit
         }
+    }
+
+    private fun sendStatus(text: String) {
+        val intent = Intent(ACTION_STATUS_UPDATE).apply {
+            putExtra(EXTRA_LAST_COMMAND, text)
+        }
+        sendBroadcast(intent)
     }
 
     private fun toggleMute(mute: Boolean) {
@@ -143,7 +153,9 @@ class VoiceListeningForegroundService : Service() {
     companion object {
         const val ACTION_START = "com.example.skipapp.action.START_VOICE_LISTENING"
         const val ACTION_STOP = "com.example.skipapp.action.STOP_VOICE_LISTENING"
+        const val ACTION_STATUS_UPDATE = "com.example.skipapp.action.STATUS_UPDATE"
         const val EXTRA_START = "extra_start"
+        const val EXTRA_LAST_COMMAND = "extra_last_command"
         const val CHANNEL_ID = "voice_listening_channel"
         const val NOTIFICATION_ID = 1001
     }
