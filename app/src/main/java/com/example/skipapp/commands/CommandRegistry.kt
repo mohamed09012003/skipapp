@@ -11,6 +11,7 @@ class CommandRegistry {
         Command.ScrollFaster,
         Command.ScrollSlower,
         Command.EnableListening,
-        Command.DisableListening
+        Command.DisableListening,
+        Command.Unknown
     )
 }

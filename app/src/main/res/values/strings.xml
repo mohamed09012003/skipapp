@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">skipapp</string>
+    <string name="accessibility_service_description">Allows SkipApp to perform simulated taps and swipes for voice-controlled video navigation.</string>
+    <string name="accessibility_service_label">SkipApp Voice Control</string>
 </resources>

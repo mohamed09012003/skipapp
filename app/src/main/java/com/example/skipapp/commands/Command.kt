@@ -11,4 +11,5 @@ sealed class Command {
     data object ScrollSlower : Command()
     data object EnableListening : Command()
     data object DisableListening : Command()
+    data object Unknown : Command()
 }
