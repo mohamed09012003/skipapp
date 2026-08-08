@@ -1,6 +1,7 @@
 package com.example.skipapp.ui
 
 import android.Manifest
+import android.accessibilityservice.AccessibilityServiceInfo
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -41,6 +42,8 @@ class MainActivity : AppCompatActivity() {
             if (granted) {
                 startListeningService()
                 btnListen.text = "Stop Listening"
+            } else {
+                statusText.text = "Microphone permission denied. Voice listening cannot start."
             }
         }
 
@@ -108,7 +111,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun isAccessibilityEnabled(context: Context): Boolean {
         val accessibilityManager = context.getSystemService(Context.ACCESSIBILITY_SERVICE) as? android.view.accessibility.AccessibilityManager
-        val enabledServices = accessibilityManager?.installedAccessibilityServiceList
+        val enabledServices = accessibilityManager?.getEnabledAccessibilityServiceList(AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
         return enabledServices?.any { service ->
             service.resolveInfo?.serviceInfo?.name == VoiceAccessibilityService::class.java.name
         } == true

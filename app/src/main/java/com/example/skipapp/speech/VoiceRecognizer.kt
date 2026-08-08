@@ -24,7 +24,10 @@ class VoiceRecognizer(private val context: Context) {
 
     fun start() {
         if (isStarted) return
-        if (SpeechRecognizer.isRecognitionAvailable(context).not()) return
+        if (SpeechRecognizer.isRecognitionAvailable(context).not()) {
+            Log.w("VoiceRecognizer", "Speech recognition unavailable")
+            return
+        }
 
         _results = Channel(Channel.BUFFERED)
         speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context).apply {
@@ -81,6 +84,8 @@ class VoiceRecognizer(private val context: Context) {
         putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
         putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US")
         putExtra(RecognizerIntent.EXTRA_PROMPT, "Say a command")
+        putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 2500L)
+        putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 2500L)
     }
 
     private fun startListening(intent: Intent) {

@@ -10,9 +10,9 @@ import androidx.annotation.RequiresApi
 class GestureController(private val service: AccessibilityService?) {
     private val tag = "GestureController"
 
-    fun swipeUp() = performGesture(createSwipeGesture(0f, 0.2f, 0f, 0.8f, 300))
+    fun swipeUp() = performGesture(createSwipeGesture(0.5f, 0.8f, 0.5f, 0.2f, 300))
 
-    fun swipeDown() = performGesture(createSwipeGesture(0f, 0.8f, 0f, 0.2f, 300))
+    fun swipeDown() = performGesture(createSwipeGesture(0.5f, 0.2f, 0.5f, 0.8f, 300))
 
     fun tapCenter() = performGesture(createTapGesture(0.5f, 0.5f, 150))
 
@@ -40,9 +40,12 @@ class GestureController(private val service: AccessibilityService?) {
 
     @RequiresApi(Build.VERSION_CODES.N)
     private fun createSwipeGesture(startX: Float, startY: Float, endX: Float, endY: Float, duration: Long): GestureDescription {
+        val displayMetrics = service?.resources?.displayMetrics ?: android.content.res.Resources.getSystem().displayMetrics
+        val width = displayMetrics.widthPixels.toFloat()
+        val height = displayMetrics.heightPixels.toFloat()
         val path = Path().apply {
-            moveTo(startX, startY)
-            lineTo(endX, endY)
+            moveTo(startX * width, startY * height)
+            lineTo(endX * width, endY * height)
         }
         return GestureDescription.Builder().apply {
             addStroke(GestureDescription.StrokeDescription(path, 0, duration))
@@ -51,9 +54,12 @@ class GestureController(private val service: AccessibilityService?) {
 
     @RequiresApi(Build.VERSION_CODES.N)
     private fun createTapGesture(x: Float, y: Float, duration: Long): GestureDescription {
+        val displayMetrics = service?.resources?.displayMetrics ?: android.content.res.Resources.getSystem().displayMetrics
+        val width = displayMetrics.widthPixels.toFloat()
+        val height = displayMetrics.heightPixels.toFloat()
         val path = Path().apply {
-            moveTo(x, y)
-            lineTo(x, y)
+            moveTo(x * width, y * height)
+            lineTo(x * width, y * height)
         }
         return GestureDescription.Builder().apply {
             addStroke(GestureDescription.StrokeDescription(path, 0, duration))
